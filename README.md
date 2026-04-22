@@ -73,23 +73,3 @@ npm run dev
 Åbn browseren på **http://localhost:5173**
 
 ---
-
-## Demo data
-
-For at indsætte en komplet demo-familie med personer, relationer og kalenderevents:
-
-```bash
-cd "E:\KEA\semester 4\Family_tree_node_exam\server"
-node seed.js
-```
-
-**Login efter seed:**
-| Felt | Værdi |
-|---|---|
-| Email | tobias@demo.dk |
-| Adgangskode | demo1234 |
-| Invite kode | DEMO1234 |
-
-Familien indeholder 4 generationer: bedsteforældre, forældre, søskende og børn.
-
----
