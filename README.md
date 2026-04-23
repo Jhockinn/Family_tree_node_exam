@@ -12,13 +12,6 @@ En fullstack webapplikation hvor familiemedlemmer kan bygge og dele et fælles f
 
 ---
 
-## Krav
-
-- [Node.js](https://nodejs.org/) (v18 eller nyere)
-- npm
-
----
-
 ## Installation
 
 ### 1. Klon eller download projektet
