@@ -25,33 +25,25 @@
     const dayNames = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 
     onMount(async () => {
-        // Hent initial data via REST
         await loadData();
 
         socket.emit("join-family", user.family_id);
 
-        // Lyt på socket events — serveren har allerede gemt i DB
         socket.on("calendar:event-added", (data) => {
             if (!events.find((e) => e.id === data.event.id)) {
                 events = [...events, data.event];
+                toast.info(`Ny begivenhed: ${data.event.title}`);
             }
-            toast.success(`${data.event.title} tilføjet!`);
         });
 
         socket.on("calendar:event-deleted", (data) => {
             events = events.filter((e) => e.id !== data.eventId);
-            toast.success("Begivenhed slettet.");
-        });
-
-        socket.on("tree:error", (data) => {
-            toast.error(data.message);
         });
     });
 
     onDestroy(() => {
         socket.off("calendar:event-added");
         socket.off("calendar:event-deleted");
-        socket.off("tree:error");
     });
 
     async function loadData() {
@@ -69,20 +61,31 @@
         }
     }
 
-    // Mutations går nu via socket — serveren gemmer i DB og broadcaster tilbage
-    function addEvent() {
-        socket.emit("calendar:add-event", {
-            title: form.title,
-            date: form.date,
-            description: form.description,
-            person_id: form.person_id || null,
-        });
-        closeModal();
+    async function addEvent() {
+        try {
+            const data = await api.post("/calendar", {
+                ...form,
+                person_id: form.person_id || null,
+            });
+            events = [...events, data.event];
+            socket.emit("calendar:add-event", { familyId: user.family_id, event: data.event });
+            toast.success(`${data.event.title} tilføjet!`);
+            closeModal();
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
-    function deleteEvent(id) {
+    async function deleteEvent(id) {
         if (!confirm("Er du sikker på at du vil slette denne begivenhed?")) return;
-        socket.emit("calendar:delete-event", { eventId: id });
+        try {
+            await api.delete(`/calendar/${id}`);
+            events = events.filter((e) => e.id !== id);
+            socket.emit("calendar:delete-event", { familyId: user.family_id, eventId: id });
+            toast.success("Begivenhed slettet.");
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
     function closeModal() {

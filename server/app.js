@@ -31,11 +31,6 @@ app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(sessionMiddleware);
 
-// Del session med Socket.IO
-io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
-});
-
 app.use("/api/auth", authRouter);
 app.use("/api/family", familyRouter);
 app.use("/api/calendar", calendarRouter);

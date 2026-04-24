@@ -29,23 +29,20 @@
     };
 
     onMount(async () => {
-        // Hent initial data via REST
         await loadTree();
 
         socket.emit("join-family", user.family_id);
 
-        // Lyt på socket events — serveren har allerede gemt i DB
         socket.on("tree:person-added", (data) => {
             if (!persons.find((p) => p.id === data.person.id)) {
                 persons = [...persons, data.person];
+                toast.info(`${data.person.name} blev tilføjet af et andet familiemedlem`);
             }
-            toast.success(`${data.person.name} blev tilføjet!`);
         });
 
         socket.on("tree:person-updated", (data) => {
             persons = persons.map((p) => (p.id === data.person.id ? data.person : p));
             if (selectedPerson?.id === data.person.id) selectedPerson = data.person;
-            toast.success("Person opdateret!");
         });
 
         socket.on("tree:person-deleted", (data) => {
@@ -57,18 +54,12 @@
                 selectedPerson = null;
                 view = "list";
             }
-            toast.success("Person slettet.");
         });
 
         socket.on("tree:relation-added", (data) => {
             if (!relationships.find((r) => r.id === data.relationship.id)) {
                 relationships = [...relationships, data.relationship];
             }
-            toast.success("Relation tilføjet!");
-        });
-
-        socket.on("tree:error", (data) => {
-            toast.error(data.message);
         });
     });
 
@@ -77,7 +68,6 @@
         socket.off("tree:person-updated");
         socket.off("tree:person-deleted");
         socket.off("tree:relation-added");
-        socket.off("tree:error");
     });
 
     async function loadTree() {
@@ -92,25 +82,63 @@
         }
     }
 
-    // Mutations går nu via socket — serveren gemmer i DB og broadcaster tilbage
-    function addPerson() {
-        socket.emit("tree:add-person", form);
-        closeModals();
+    async function addPerson() {
+        try {
+            const data = await api.post("/family/persons", form);
+            persons = [...persons, data.person];
+            socket.emit("tree:add-person", { familyId: user.family_id, person: data.person });
+            toast.success(`${data.person.name} blev tilføjet!`);
+            closeModals();
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
-    function updatePerson() {
-        socket.emit("tree:update-person", { id: selectedPerson.id, ...form });
-        closeModals();
+    async function updatePerson() {
+        try {
+            await api.put(`/family/persons/${selectedPerson.id}`, form);
+            const updated = { ...selectedPerson, ...form };
+            persons = persons.map((p) => (p.id === selectedPerson.id ? updated : p));
+            selectedPerson = updated;
+            socket.emit("tree:update-person", { familyId: user.family_id, person: updated });
+            toast.success("Person opdateret!");
+            closeModals();
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
-    function deletePerson(id) {
+    async function deletePerson(id) {
         if (!confirm("Er du sikker på at du vil slette denne person?")) return;
-        socket.emit("tree:delete-person", { personId: id });
+        try {
+            await api.delete(`/family/persons/${id}`);
+            const deleted = persons.find((p) => p.id === id);
+            persons = persons.filter((p) => p.id !== id);
+            relationships = relationships.filter(
+                (r) => r.person_id !== id && r.related_person_id !== id
+            );
+            socket.emit("tree:delete-person", { familyId: user.family_id, personId: id });
+            toast.success(`${deleted?.name} blev slettet`);
+            if (selectedPerson?.id === id) {
+                selectedPerson = null;
+                view = "list";
+            }
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
-    function addRelation() {
-        socket.emit("tree:add-relation", relation);
-        closeModals();
+    async function addRelation() {
+        try {
+            const data = await api.post("/family/relationships", relation);
+            const newRel = { id: data.id, ...relation };
+            relationships = [...relationships, newRel];
+            socket.emit("tree:add-relation", { familyId: user.family_id, relationship: newRel });
+            toast.success("Relation tilføjet!");
+            closeModals();
+        } catch (err) {
+            toast.error(err.message);
+        }
     }
 
     function openEdit(person) {
