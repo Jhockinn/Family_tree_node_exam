@@ -252,8 +252,19 @@
 </div>
 
 {#if showAddPerson}
-    <div class="modal-overlay" onclick={closeModals}>
-        <div class="modal" onclick={(e) => e.stopPropagation()}>
+    <div
+        class="modal-overlay"
+        onclick={closeModals}
+        onkeydown={(e) => e.key === "Escape" && closeModals()}
+        role="presentation"
+    >
+        <div
+            class="modal"
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+            role="dialog"
+            tabindex="0"
+        >
             <h3>Tilføj person</h3>
             <form onsubmit={(e) => { e.preventDefault(); addPerson(); }}>
                 <label>Navn <input type="text" bind:value={form.name} required /></label>
@@ -270,8 +281,19 @@
 {/if}
 
 {#if showEditPerson}
-    <div class="modal-overlay" onclick={closeModals}>
-        <div class="modal" onclick={(e) => e.stopPropagation()}>
+    <div
+        class="modal-overlay"
+        onclick={closeModals}
+        onkeydown={(e) => e.key === "Escape" && closeModals()}
+        role="presentation"
+    >
+        <div
+            class="modal"
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+            role="dialog"
+            tabindex="0"
+        >
             <h3>Rediger person</h3>
             <form onsubmit={(e) => { e.preventDefault(); updatePerson(); }}>
                 <label>Navn <input type="text" bind:value={form.name} required /></label>
@@ -288,8 +310,19 @@
 {/if}
 
 {#if showAddRelation}
-    <div class="modal-overlay" onclick={closeModals}>
-        <div class="modal" onclick={(e) => e.stopPropagation()}>
+    <div
+        class="modal-overlay"
+        onclick={closeModals}
+        onkeydown={(e) => e.key === "Escape" && closeModals()}
+        role="presentation"
+    >
+        <div
+            class="modal"
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+            role="dialog"
+            tabindex="0"
+        >
             <h3>Tilføj relation</h3>
             <form onsubmit={(e) => { e.preventDefault(); addRelation(); }}>
                 <label>

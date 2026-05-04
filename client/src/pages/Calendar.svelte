@@ -132,7 +132,7 @@
     let upcomingEvents = $derived(
         [...events]
             .filter((e) => new Date(e.date) >= new Date(today.toDateString()))
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .sort((a, b) => +new Date(a.date) - +new Date(b.date))
             .slice(0, 5)
     );
 
@@ -197,7 +197,7 @@
                     <p class="no-events">Ingen begivenheder endnu</p>
                 {:else}
                     <ul class="event-list">
-                        {#each [...events].sort((a, b) => new Date(a.date) - new Date(b.date)) as event}
+                        {#each [...events].sort((a, b) => +new Date(a.date) - +new Date(b.date)) as event}
                             <li class="event-item">
                                 <div class="event-date">{event.date}</div>
                                 <div class="event-body">
@@ -215,8 +215,19 @@
 </div>
 
 {#if showAddEvent}
-    <div class="modal-overlay" onclick={closeModal}>
-        <div class="modal" onclick={(e) => e.stopPropagation()}>
+    <div
+    class="modal-overlay"
+    onclick={closeModal}
+    onkeydown={(e) => e.key === "Escape" && closeModal()}
+    role="presentation"
+>
+    <div
+        class="modal"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+        role="dialog"
+        tabindex="0"
+    >
             <h3>Tilføj begivenhed</h3>
             <form onsubmit={(e) => { e.preventDefault(); addEvent(); }}>
                 <label>Titel <input type="text" bind:value={form.title} required /></label>
